@@ -36,19 +36,25 @@
 <script>
     import Pagination from "../../Pagination/Index"
     import ORDER_STATUS from "../../../ORDER_STATUS";
+    import loaderMixin from "../../../mixins/loaderMixin";
     export default {
         name: "Index",
         components:{
             Pagination
         },
+        mixins:[loaderMixin],
         methods:{
             async next(){
+                const load = this.startLoading()
                 const orders = await this.$store.dispatch('WEBSITE_PAGINATE', { resource:'orders', page:this.pagination.current_page })
                 await this.$store.commit('ORDERS',orders.data)
                 await this.$store.commit('SET_PAGINATION', orders)
+                this.stopLoading(load)
             },
             async getOrders(){
+                const load = this.startLoading()
                 await this.$store.dispatch('ORDERS')
+                this.stopLoading(load)
             },
             getOrderStatus(status){
                 return ORDER_STATUS[status];

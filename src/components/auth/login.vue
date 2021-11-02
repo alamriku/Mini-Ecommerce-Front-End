@@ -32,6 +32,7 @@
 <script>
     import repository from "../../api/repository";
     import toastMixin from "../../mixins/toastMixin";
+    import loaderMixin from "../../mixins/loaderMixin";
     export default {
         data(){
             return {
@@ -39,7 +40,7 @@
                 password:'',
             }
         },
-        mixins:[toastMixin],
+        mixins:[toastMixin, loaderMixin],
         methods:{
             async onSubmit() {
                 try {
@@ -47,8 +48,10 @@
                         email: this.email,
                         password: this.password,
                     };
+                    const load = this.startLoading()
                     const { data } = await repository.login(inputs)
                     await this.$store.dispatch('SET_STORAGE', data)
+                    this.stopLoading(load)
                     await this.$router.push({ name:'Items' })
                 } catch (e) {
                     switch (e.response.status) {

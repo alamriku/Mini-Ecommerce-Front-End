@@ -65,6 +65,7 @@
 <script>
     import Breadcrumb from "../Partial/Breadcrumb";
     import toastMixin from "../../../mixins/toastMixin";
+    import loaderMixin from "../../../mixins/loaderMixin";
     export default {
         name: "Edit",
         components:{
@@ -81,15 +82,19 @@
                 },
             }
         },
-        mixins: [toastMixin],
+        mixins: [toastMixin, loaderMixin],
         methods: {
             async edit() {
+                const load = this.startLoading()
                 await this.$store.dispatch('EDIT_PRODUCT', this.$route.params.id )
+                this.stopLoading(load)
             },
             async onSubmit() {
                 try {
+                    const load = this.startLoading()
                     const formData = this.formData()
                     const response = await this.$store.dispatch('UPDATE_PRODUCT', { product:this.$route.params.id, formData})
+                    this.stopLoading(load)
                     if(response.status === 200){
                         this.successToast(response.data.message);
                     }

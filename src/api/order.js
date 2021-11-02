@@ -9,5 +9,11 @@ export default {
     },
     adminOrders() {
         return order.get(`${URL}/orders`)
+    },
+    updateOrderStatus({status, orderId}){
+        return order.put(`${URL}/orders/${orderId}`, {
+            method: 'PUT',
+            status: status
+        })
     }
 }

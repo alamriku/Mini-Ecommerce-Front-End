@@ -30,7 +30,8 @@ const routes = [
       {
         path: '/orders',
         name: 'Orders',
-        component: Orders
+        component: Orders,
+        beforeEnter: middleware.user
       }
     ]
   },

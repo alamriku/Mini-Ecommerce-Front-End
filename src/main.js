@@ -4,6 +4,9 @@ import router from './router'
 import store from './store'
 import '@/assets/css/tailwind.css'
 import Toasted from 'vue-toasted'
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css'
+
 //import './main.css'
 
 
@@ -38,8 +41,10 @@ const settings = {
 }
 
 Vue.use(VueTailwind, settings)
+Vue.use(Loading);
 Vue.config.productionTip = false
 Vue.use(Toasted)
+
 new Vue({
   router,
   store,

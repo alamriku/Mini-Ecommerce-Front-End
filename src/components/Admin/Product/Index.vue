@@ -104,6 +104,7 @@
     import Pagination from "../../Pagination/Index"
     import toastMixin from "../../../mixins/toastMixin";
     import ORDER_STATUS from "../../../ORDER_STATUS";
+    import loaderMixin from "../../../mixins/loaderMixin";
     export default {
         name: "Index",
         components: {
@@ -119,16 +120,20 @@
                 return this.$store.getters.PAGINATION
             },
         },
-        mixins: [toastMixin],
+        mixins: [toastMixin,loaderMixin],
         methods:{
             getImage(imagePath){
                 return process.env.VUE_APP_URL+'/' + imagePath
             },
             async next(){
+                const load = this.startLoading()
                 await this.$store.dispatch('PAGINATE', this.pagination.current_page)
+                this.stopLoading(load)
             },
             async items(){
+                const load = this.startLoading()
                 await this.$store.dispatch('PRODUCTS')
+                this.stopLoading(load)
             },
             getOrderStatus(status){
                 return ORDER_STATUS[status];

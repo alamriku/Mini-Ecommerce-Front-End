@@ -4,7 +4,7 @@ import order from "../../api/order";
 
 
 const state = {
-    orders: []
+    orders: [],
 }
 
 const mutations = {
@@ -29,12 +29,15 @@ const actions = {
         commit('ORDERS', resource.data)
         dispatch('PAGINATION', resource)
     },
+    ADMIN_ORDER_STATUS_UPDATE: async (_, payload) => {
+       return await order.updateOrderStatus(payload)
+    }
 }
 
 const getters = {
     ORDERS(state){
         return state.orders
-    }
+    },
 }
 
 export default {

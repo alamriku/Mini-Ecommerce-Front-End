@@ -2,7 +2,7 @@
     <div id="products" >
         <breadcrumb first="Home" second="Orders"></breadcrumb>
         <t-table
-                :headers="['ID', 'Price', 'Quantity','Status', 'Image','Action']"
+                :headers="['ID','User','Product', 'Price', 'Quantity','Status', 'Image','Action']"
                 :data="orders"
                 :responsive="true"
                 :responsive-breakpoint="520"
@@ -59,6 +59,12 @@
                         {{ row.external_id }}
                     </td>
                     <td :class="[tdClass]">
+                        {{ row.user.name }}
+                    </td>
+                    <td :class="[tdClass]">
+                        {{ row.product.name }}
+                    </td>
+                    <td :class="[tdClass]">
                         {{ row.purchase_price }}
                     </td>
                     <td :class="tdClass">
@@ -77,22 +83,22 @@
                             <template slot="button">
                                 <svg version="1.1" viewBox="0 0 16 16" class="text-gray-600 fill-current svg-icon svg-fill" heigth="20" style="width: 20px;"><path pid="0" d="M13 7a2 2 0 1 1 .001 3.999A2 2 0 0 1 13 7zM8 7a2 2 0 1 1 .001 3.999A2 2 0 0 1 8 7zM3 7a2 2 0 1 1 .001 3.999A2 2 0 0 1 3 7z" /></svg>
                             </template>
-                            <a class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-blue-500" >
+                            <a v-if="getOrderStatus(row.status) !== 'APPROVED'" @click="updateOrderStatus({ status:'APPROVED', orderId: row.id })" class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-blue-500 cursor-pointer"  >
                                 APPROVED
                             </a>
-                            <a class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-red-500" >
+                            <a v-if="getOrderStatus(row.status) !== 'REJECTED'" @click="updateOrderStatus({ status:'REJECTED', orderId: row.id })" class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-red-500 cursor-pointer" >
                                 REJECTED
                             </a>
-                            <a class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-green-500" >
+                            <a v-if="getOrderStatus(row.status) !== 'PROCESSING'" @click="updateOrderStatus({ status:'PROCESSING', orderId: row.id })" class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-green-500 cursor-pointer" >
                                 PROCESSING
                             </a>
-                            <a class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-yellow-500" >
+                            <a v-if="getOrderStatus(row.status) !== 'SHIPPED'" @click="updateOrderStatus({ status:'SHIPPED', orderId: row.id })" class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-yellow-500 cursor-pointer" >
                                 SHIPPED
                             </a>
-                            <a class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-purple-500" >
+                            <a v-if="getOrderStatus(row.status) !== 'DELIVERED'" @click="updateOrderStatus({ status:'DELIVERED', orderId: row.id })"  class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-purple-500 cursor-pointer" >
                                 DELIVERED
                             </a>
-                            <a class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-gray-500" >
+                            <a v-if="getOrderStatus(row.status) !== 'PENDING'" @click="updateOrderStatus({ status:'PENDING', orderId: row.id })" class="block w-full px-4 py-2 text-left text-gray-800 hover:text-white hover:bg-gray-500 cursor-pointer" >
                                 PENDING
                             </a>
                         </t-dropdown>
@@ -112,8 +118,14 @@
     import Pagination from "../../Pagination/Index"
     import toastMixin from "../../../mixins/toastMixin";
     import ORDER_STATUS from "../../../ORDER_STATUS";
+    import loaderMixin from "../../../mixins/loaderMixin";
     export default {
         name: "Index",
+        data(){
+          return {
+              orderStatus: ORDER_STATUS
+          }
+        },
         components: {
             Breadcrumb,
             Pagination,
@@ -126,20 +138,40 @@
                 return this.$store.getters.WEBSITE_PAGINATE
             }
         },
-        mixins: [toastMixin],
+        mixins: [toastMixin,loaderMixin],
         methods:{
             async next(){
+                const load = this.startLoading()
                 const orders = await this.$store.dispatch('WEBSITE_PAGINATE', { resource:'orders', page:this.pagination.current_page })
                 await this.$store.commit('ORDERS',orders.data)
                 await this.$store.commit('SET_PAGINATION', orders)
+                this.stopLoading(load)
             },
             async getOrders(){
+                const load = this.startLoading()
                 await this.$store.dispatch('ADMIN_ORDERS')
+                this.stopLoading(load)
             },
             getOrderStatus(status){
-                return ORDER_STATUS[status];
+                return ORDER_STATUS[status]
             },
-            changeStatus(){
+            async updateOrderStatus(payload){
+                try{
+                    const load = this.startLoading()
+                    const response = await this.$store.dispatch('ADMIN_ORDER_STATUS_UPDATE', payload)
+                    await this.getOrders()
+                    this.stopLoading(load)
+                    if(response.status === 200){
+                        this.successToast(response.data.message);
+                    }
+                } catch (e) {
+                    switch (e.response.status) {
+                        case(422) : this.validationToast(e.response.data.errors)
+                            break;
+                        case(401) : this.unauthenticatedToast(e.response.data.error.message)
+                            break;
+                    }
+                }
 
             },
             getImage(imagePath){

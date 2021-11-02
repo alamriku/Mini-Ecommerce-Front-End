@@ -18,25 +18,25 @@ const Admin = {
                 beforeEnter: middleware.admin
             },
             {
-                path: '/products/create',
+                path: 'products/create',
                 name: 'Products.Create',
                 component: ProductsCreate,
                 beforeEnter: middleware.admin,
             },
             {
-                path: '/products',
+                path: 'products',
                 name: 'Products',
                 component: ProductsIndex,
                 beforeEnter: middleware.admin
             },
             {
-                path: '/products/:id',
+                path: 'products/:id',
                 name: 'Products.Edit',
                 component: ProductsEdit,
                 beforeEnter: middleware.admin,
             },
             {
-                path: '/orders/',
+                path: 'orders/',
                 name: 'AdminOrders',
                 component: AdminOrder,
                 beforeEnter: middleware.admin,

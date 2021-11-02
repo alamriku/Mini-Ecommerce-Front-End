@@ -65,6 +65,7 @@
 <script>
     import Breadcrumb from "../Partial/Breadcrumb";
     import toastMixin from "../../../mixins/toastMixin";
+    import loaderMixin from "../../../mixins/loaderMixin";
     export default {
         name: "Create",
         components:{
@@ -81,12 +82,14 @@
                 },
             }
         },
-        mixins: [toastMixin],
+        mixins: [toastMixin,loaderMixin],
         methods: {
             async onSubmit() {
                 try {
+                    const load = this.startLoading()
                     const formData = this.formData()
                     const response = await this.$store.dispatch('STORE_PRODUCT', formData)
+                    this.stopLoading(load)
                     if(response.status === 200){
                         this.successToast(response.data.message);
                     }

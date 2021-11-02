@@ -17,9 +17,12 @@
                             <span class="font-bold text-indigo-600 text-3xl">{{ product.price }}</span>
                         </div>
                     </div>
-                    <div class="flex-1">
+                    <div class="flex-1" v-if="product.qty > 0">
                         <p class="text-green-500 text-xl font-semibold">Stock-IN</p>
-                        <p class="text-gray-400 text-sm" >{{ product.qty }}</p>
+                        <p class="text-red-400 text-sm" >{{ product.qty }}</p>
+                    </div>
+                    <div class="flex-1" v-else>
+                        <p class="text-red-500 text-xl font-semibold">Stock-Out</p>
                     </div>
                 </div>
 
@@ -38,7 +41,7 @@
 
                     </div>
 
-                    <button @click="order()" :disabled="isActive" type="button" :class="isActive ? 'cursor-not-allowed' : '' " class="h-14 px-6 py-2 font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white">
+                    <button v-if="product.qty > 0" @click="order()" :disabled="isActive" type="button" :class="isActive ? 'cursor-not-allowed' : '' " class="h-14 px-6 py-2 font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white">
                         Order
                     </button>
                 </div>
@@ -49,6 +52,7 @@
 
 <script>
     import toastMixin from "../../../mixins/toastMixin";
+    import loaderMixin from "../../../mixins/loaderMixin";
 
     export default {
         name: "Show",
@@ -63,16 +67,19 @@
               isActive: false,
           }
         },
-        mixins:[toastMixin],
+        mixins:[toastMixin,loaderMixin],
         methods: {
             getImage(imagePath){
                 return process.env.VUE_APP_URL+'/' + imagePath
             },
-             getProduct() {
-                 this.$store.dispatch('WEBSITE_PRODUCT', this.$route.params.name )
+             async getProduct() {
+                 const load = this.startLoading()
+                 await this.$store.dispatch('WEBSITE_PRODUCT', this.$route.params.name )
+                 this.stopLoading(load)
             },
             async order() {
                 try {
+                    const load = this.startLoading()
                      this.isActive = true
 
                     if(!this.isAuthenticated){
@@ -84,6 +91,7 @@
                         this.successToast(response.data.message);
                     }
                    this.isActive = false
+                    this.stopLoading(load)
                 } catch (e) {
                     switch (e.response.status) {
                         case(422) : this.validationToast(e.response.data.errors)

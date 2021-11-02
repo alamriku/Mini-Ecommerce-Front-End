@@ -1,6 +1,7 @@
 import axios from 'axios'
 import store from '../store/index'
 import router from "../router";
+
 const instance = axios.create({
   withCredentials: true
 })
@@ -11,7 +12,6 @@ instance.interceptors.request.use(request => {
   if (token) {
     request.headers.common['Authorization'] = 'Bearer '+token
   }
-
   return request
 }, error => {
   return Promise.reject(error)
@@ -26,13 +26,16 @@ instance.interceptors.response.use(
       case 401: // Not Logged in or token is not provided
         store.dispatch('AUTH_LOGOUT')
           router.push({ name: 'Login'})
-          console.log('test');
        // console.log(error.response.data.message)
         // localStorage.removeItem('user')
         // window.location.reload()
         break
       case 419: // session expire
         //console.log(error.response.data.message)
+        // store.dispatch('logout')
+        break
+      case 403: // session expire
+        router.push({ name: 'Forbidden'})
         // store.dispatch('logout')
         break
 
